@@ -1,0 +1,133 @@
+﻿
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Home Page</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1T7-X-7-LlQOpVzL8JC-qAAHifqytqzs&callback=initMap" type="text/javascript"></script>
+    <script src="../../scripts/jquery-3.0.0.min.js" type="text/javascript"></script>
+
+    
+
+    <style>
+        .stationInfo {
+            height: 150px;
+            width: 250px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="canvas" style="margin-top: 50px; height: 800px; width:100%;"></div>
+    
+    <script type="text/javascript">
+
+    $(document).ready(function () {
+        GetMap();
+    });
+
+    // Функция загрузки
+    function GetMap() {
+        
+        google.maps.visualRefresh = true;
+        // установка основных координат
+        var Kiev = new google.maps.LatLng(50.450091, 30.523415);
+
+        // Установка общих параметров отображения карты, как масштаб, центральная точка и тип карты
+        var mapOptions = {
+            zoom: 12,
+            center: Kiev,
+            mapTypeId: google.maps.MapTypeId.G_NORMAL_MAP
+        };
+
+        // Встраиваем гугл-карты в элемент на странице и получаем объект карты
+        var map = new google.maps.Map(document.getElementById("canvas"), mapOptions);
+
+        // Получаем данные
+        $.getJSON('@Url.Action("GetData", "Map")', function (data) {
+            // Проходим по всем данным и устанавливаем для них маркеры
+            $.each(data, function (i, item) {
+                
+                var marker = new google.maps.Marker({
+                    'position': new google.maps.LatLng(item.GeoLat, item.GeoLong),
+                    'map': map,
+                    'title': item.Login
+                });
+
+                var color = '';
+
+                // Берем для этих маркеров синие иконки с сайта google
+                if (item.ClassAvto === 1) {
+                    var image = {
+                        url: '../../Images/mini.png',
+                        size: new google.maps.Size(64, 64),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(32, 32)
+                    };
+                    marker.setIcon(image);
+                    color = '#00ff11';
+                }
+                if (item.ClassAvto === 2) {
+                    var image = {
+                        url: '../../Images/sport.png',
+                        size: new google.maps.Size(64, 64),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(32, 32)
+                    };
+                    marker.setIcon(image);
+                    color = '#0098FF';
+                }
+                if (item.ClassAvto === 3) {
+                    var image = {
+                        url: '../../Images/bus.png',
+                        size: new google.maps.Size(64, 64),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(32, 32)
+                    };
+                    marker.setIcon(image);
+                    color = '#00FFE2';
+                }
+                if (item.ClassAvto === 4) {
+                    var image = {
+                        url: '../../Images/lorry.png',
+                        size: new google.maps.Size(64, 64),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(32, 32)
+                    };
+                    marker.setIcon(image);
+                    color = '#FBFF91';
+                }
+
+                var cityCircle = new google.maps.Circle({
+                    strokeColor: color,
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: color,
+                    fillOpacity: 0.35,
+                    map: map,
+                    center: new google.maps.LatLng(item.GeoLat, item.GeoLong),
+                    radius: item.Radius * 1000
+                });
+
+                var content = "<div><h4>Водитель " + "<a href=\"/Driver/Details?id=" + item.Id + "\"" + "target=\"_blank\"" + ">" + item.Login + "</a></h4>"
+                            + "<div><h4>ClassAuto: " + item.ClassAvtoString + "</h4></div></div>"
+                            + "<div><h4>Vehicle: " + item.Vehicle + "</h4></div></div>";
+
+                // Для каждого объекта добавляем доп. информацию, выводимую в отдельном окне
+                var infowindow = new google.maps.InfoWindow({
+                    content:  content,
+                    maxWidth: 250
+                });
+
+                // обработчик нажатия на маркер объекта
+                google.maps.event.addListener(marker, 'click', function () {
+                    infowindow.open(map, marker);
+                });
+            })
+        });
+
+    }
+    </script>
+    
+</body>
